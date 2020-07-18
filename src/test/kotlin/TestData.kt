@@ -1,8 +1,5 @@
 import kotlinx.serialization.Serializable
-import org.hexworks.amethyst.api.Attribute
-import org.hexworks.amethyst.api.Command
-import org.hexworks.amethyst.api.Consumed
-import org.hexworks.amethyst.api.Context
+import org.hexworks.amethyst.api.*
 import org.hexworks.amethyst.api.base.BaseBehavior
 import org.hexworks.amethyst.api.base.BaseFacet
 import org.hexworks.amethyst.api.entity.Entity
@@ -45,7 +42,18 @@ object Hurtable : BaseFacet<GameContext>(LifeStats::class) {
         }
 }
 
-class Bully() : BaseBehavior<GameContext>(DmgStats::class) {
+object TestFacet : BaseFacet<GameContext>() {
+    override suspend fun executeCommand(command: Command<out EntityType, GameContext>) =
+        command.responseWhenCommandIs(Attack::class) { (_, attacker, target, dmg) ->
+            println("$attacker hits $target for $dmg! It hurts! ")
+            val life = target.findAttribute(LifeStats::class).get()
+            life.hp -= dmg
+            println("${target.name} has ${life.hp} hp left.")
+            Consumed
+        }
+}
+
+class Bully : BaseBehavior<GameContext>(DmgStats::class) {
     override suspend fun update(entity: Entity<EntityType, GameContext>, context: GameContext): Boolean {
         val target = context.defender
         val dmgStats = entity.findAttribute(DmgStats::class).get()
@@ -53,4 +61,35 @@ class Bully() : BaseBehavior<GameContext>(DmgStats::class) {
 
         return true
     }
+}
+
+object TestBehavior : BaseBehavior<GameContext>(DmgStats::class) {
+    override suspend fun update(entity: Entity<EntityType, GameContext>, context: GameContext): Boolean {
+        val target = context.defender
+        val dmgStats = entity.findAttribute(DmgStats::class).get()
+        target.sendCommand(Attack(context, entity, target, dmgStats.dmg))
+
+        return true
+    }
+}
+
+val testEntity = newEntityOfType<EntityType, GameContext>(
+    Human("A human bully", "A baddie")
+) {
+    attributes(DmgStats(1), LifeStats(10))
+    facets(Hurtable, TestFacet)
+    behaviors(Bully(), TestBehavior)
+}
+
+val testEntity2 = newEntityOfType<EntityType, GameContext>(
+    Human("Another human bully", "Another baddie")
+) {
+    attributes(DmgStats(2), LifeStats(15))
+    facets(Hurtable, TestFacet)
+    behaviors(Bully(), TestBehavior)
+}
+
+val testEngine = TestEngine<GameContext>().also {
+    it.addEntity(testEntity)
+    it.addEntity(testEntity2)
 }
