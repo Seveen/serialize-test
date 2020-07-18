@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="EntitySerializationTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2020-07-18T22:22:19" hostname="DESKTOP-S91D51G" time="0.457">
+  <properties/>
+  <testcase name="given_an_entity_it_should_serialize_correctly" classname="EntitySerializationTest" time="0.457"/>
+  <system-out><![CDATA[{"type":["Human",{"name":"A human bully","description":"A baddie"}],"attributes":[["DmgStats",{"dmg":1}],["LifeStats",{"hp":10}],["Human",{"name":"A human bully","description":"A baddie"}]],"facets":[["Hurtable",]],"behaviors":[["Bully",]]}
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
